@@ -13,5 +13,6 @@ dnf5 clean all
 rm -rf /var/cache/dnf
 
 # Systemd services
+systemctl mask systemd-journald-audit.socket
 systemctl disable --now podman.socket || true
 systemctl enable docker qemu-guest-agent tailscaled
