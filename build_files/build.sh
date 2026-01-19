@@ -6,7 +6,7 @@ dnf5 install -y cloud-init docker docker-compose qemu-guest-agent tailscale samb
 
 # Install ctop static binary
 curl -Lo /usr/local/bin/ctop \
-     -L https://github.com/bcicen/ctop/releases/download/v0.9.8/ctop-0.9.8-linux-amd64
+     -L https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64
 chmod +x /usr/local/bin/ctop
 
 # Clean up
