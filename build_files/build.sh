@@ -19,4 +19,8 @@ systemctl mask systemd-zram-generator.service
 systemctl disable --now podman.socket || true
 
 systemctl enable docker qemu-guest-agent tailscaled
-systemctl --root=/ enable cloud-init.service cloud-init-local.service cloud-config.service cloud-final.service
+
+ln -s /usr/lib/systemd/system/cloud-init-local.service /etc/systemd/system/multi-user.target.wants/cloud-init-local.service
+ln -s /usr/lib/systemd/system/cloud-init.service /etc/systemd/system/multi-user.target.wants/cloud-init.service
+ln -s /usr/lib/systemd/system/cloud-config.service /etc/systemd/system/multi-user.target.wants/cloud-config.service
+ln -s /usr/lib/systemd/system/cloud-final.service /etc/systemd/system/multi-user.target.wants/cloud-final.service
