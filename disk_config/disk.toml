@@ -8,5 +8,9 @@ mountpoint = "/"
 minsize = "15 GiB"
 filesystem = "xfs"
 
-[kernel]
-cmdline = "ignition.firstboot ignition.platform.id=qemu"
+[[customizations.bootloader]]
+type = "grub"
+kargs = [
+    "ignition.firstboot",
+    "ignition.platform.id=qemu"
+]
