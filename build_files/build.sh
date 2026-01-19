@@ -1,21 +1,17 @@
 #!/bin/bash
-
 set -ouex pipefail
 
-### Install packages
-dnf5 install -y qemu-guest-agent tailscale samba nfs-utils
-dnf5 install -y docker docker-compose
+# Install all required packages
+dnf5 install -y docker docker-compose qemu-guest-agent tailscale samba nfs-utils curl
 
-dnf5 install -y 'dnf5-command(copr)'
-dnf5 -y copr enable bcicen/ctop
+# Install ctop static binary
+curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.9.8/ctop-0.9.8-linux-amd64
+chmod +x /usr/local/bin/ctop
 
-dnf5 install -y ctop
-
-dnf5 -y copr disable bcicen/ctop
-
+# Clean up
 dnf5 clean all
 rm -rf /var/cache/dnf
 
-### Set systemd
-systemctl enable docker qemu-guest-agent tailscaled
+# Systemd services
 systemctl disable --now podman.socket || true
+systemctl enable docker qemu-guest-agent tailscaled
