@@ -29,10 +29,9 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 
 RUN mkdir -p /usr/lib/bootc/kargs.d
 
-RUN cat <<EOF >> /usr/lib/bootc/kargs.d/00-ignition.toml
-kargs = ["ignition.firstboot", "ignition.platform.id=qemu"]
-match-architectures = ["x86_64", "aarch64"]
-EOF
+RUN mkdir -p /usr/lib/bootc/kargs.d && \
+    echo 'kargs = ["ignition.firstboot", "ignition.platform.id=qemu"]' > /usr/lib/bootc/kargs.d/00-ignition.toml && \
+    echo 'match-architectures = ["x86_64","aarch64"]' >> /usr/lib/bootc/kargs.d/00-ignition.toml
 
 ### LINTING
 ## Verify final image and contents are correct.
