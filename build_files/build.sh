@@ -5,7 +5,8 @@ set -ouex pipefail
 dnf5 install -y cloud-init docker docker-compose qemu-guest-agent tailscale samba nfs-utils curl
 
 # Install ctop static binary
-curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.9.8/ctop-0.9.8-linux-amd64
+curl -Lo /usr/local/bin/ctop \
+     -L https://github.com/bcicen/ctop/releases/download/v0.9.8/ctop-0.9.8-linux-amd64
 chmod +x /usr/local/bin/ctop
 
 # Clean up
