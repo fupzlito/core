@@ -15,4 +15,4 @@ rm -rf /var/cache/dnf
 # Systemd services
 systemctl mask systemd-journald-audit.socket
 systemctl disable --now podman.socket || true
-systemctl enable ignition docker qemu-guest-agent tailscaled
+systemctl enable docker qemu-guest-agent tailscaled
