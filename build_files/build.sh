@@ -14,9 +14,9 @@ rm -rf /var/cache/dnf
 
 # Systemd services
 systemctl mask systemd-journald-audit.socket
+systemctl mask systemd-zram-generator.service
+
 systemctl disable --now podman.socket || true
+
 systemctl enable docker qemu-guest-agent tailscaled
-systemctl enable cloud-init-local.service
-systemctl enable cloud-init.service
-systemctl enable cloud-config.service
-systemctl enable cloud-final.service
+systemctl --root=/ enable cloud-init.service cloud-init-local.service cloud-config.service cloud-final.service
