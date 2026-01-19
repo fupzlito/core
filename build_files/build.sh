@@ -2,7 +2,7 @@
 set -ouex pipefail
 
 # Install all required packages
-dnf5 install -y ignition docker docker-compose qemu-guest-agent tailscale samba nfs-utils curl
+dnf5 install -y cloud-init docker docker-compose qemu-guest-agent tailscale samba nfs-utils curl
 
 # Install ctop static binary
 curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.9.8/ctop-0.9.8-linux-amd64
@@ -16,3 +16,7 @@ rm -rf /var/cache/dnf
 systemctl mask systemd-journald-audit.socket
 systemctl disable --now podman.socket || true
 systemctl enable docker qemu-guest-agent tailscaled
+systemctl enable cloud-init-local.service
+systemctl enable cloud-init.service
+systemctl enable cloud-config.service
+systemctl enable cloud-final.service
