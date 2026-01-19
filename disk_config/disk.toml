@@ -7,10 +7,3 @@ filesystem = "ext4"
 mountpoint = "/"
 minsize = "15 GiB"
 filesystem = "xfs"
-
-[[customizations.bootloader]]
-type = "grub"
-kargs = [
-    "ignition.firstboot",
-    "ignition.platform.id=qemu"
-]

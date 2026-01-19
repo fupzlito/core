@@ -26,7 +26,14 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/build.sh
-    
+
+RUN mkdir -p /usr/lib/bootc/kargs.d
+
+RUN cat <<EOF >> /usr/lib/bootc/kargs.d/00-ignition.toml
+kargs = ["ignition.firstboot", "ignition.platform.id=qemu"]
+match-architectures = ["x86_64", "aarch64"]
+EOF
+
 ### LINTING
 ## Verify final image and contents are correct.
 RUN bootc container lint
