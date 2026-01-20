@@ -32,7 +32,7 @@ PARTUUID=57fbe3f6-2f21-47e3-a24a-e41e5011f4af
 ukify build \
   --linux /boot/vmlinuz \
   --initrd /boot/initramfs.img \
-  --cmdline "root=PARTUUID=${ROOT_PARTUUID} rw" \
+  --cmdline "root=PARTUUID=${PARTUUID} rw" \
   --output /boot/efi/EFI/Linux/fedora-bootc.efi
 
 # Ensure loader entries directory exists
