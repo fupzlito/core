@@ -2,7 +2,6 @@
 contents = """
 %post
 bootc switch --mutate-in-place --transport registry ghcr.io/fupzlito/core:systemd
-bootc install --esp /boot/efi --loader systemd-boot
 %end
 """
 
