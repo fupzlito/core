@@ -52,6 +52,7 @@ if [ ! -d "/usr/lib/modules/$KVER" ]; then
 fi
 
 depmod -a "$KVER"
+export TMPDIR=/tmp
 export DRACUT_NO_XATTR=1
 /usr/bin/dracut \
   --no-hostonly \
