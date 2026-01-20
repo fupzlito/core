@@ -26,20 +26,3 @@ systemctl enable docker qemu-guest-agent tailscaled
 #ln -s /usr/lib/systemd/system/cloud-init.service /etc/systemd/system/multi-user.target.wants/cloud-init.service
 #ln -s /usr/lib/systemd/system/cloud-config.service /etc/systemd/system/multi-user.target.wants/cloud-config.service
 #ln -s /usr/lib/systemd/system/cloud-final.service /etc/systemd/system/multi-user.target.wants/cloud-final.service
-
-# Build the UKI while the container is still mutable
-PARTUUID=57fbe3f6-2f21-47e3-a24a-e41e5011f4af
-ukify build \
-  --linux /boot/vmlinuz \
-  --initrd /boot/initramfs.img \
-  --cmdline "root=PARTUUID=${PARTUUID} rw" \
-  --output /boot/efi/EFI/Linux/fedora-bootc.efi
-
-# Ensure loader entries directory exists
-mkdir -p /boot/efi/loader/entries
-
-# Create the systemd-boot entry
-cat > /boot/efi/loader/entries/fedora-bootc.conf <<EOF
-title Fedora bootc
-efi /EFI/Linux/fedora-bootc.efi
-EOF
