@@ -4,7 +4,7 @@ COPY build_files /
 # Base Image
 FROM quay.io/bootc-devel/fedora-bootc-43-minimal-plus
 
-COPY files/base /
+COPY files/ /
 
 RUN mkdir -p /usr/lib/bootupd/updates \
     && cp -r /usr/lib/efi/*/*/* /usr/lib/bootupd/updates
