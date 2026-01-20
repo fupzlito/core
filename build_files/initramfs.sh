@@ -53,6 +53,7 @@ fi
 
 depmod -a "$KVER"
 export DRACUT_NO_XATTR=1
+export TMPDIR="/tmp"
 /usr/bin/dracut \
   --no-hostonly \
   --kver "$KVER" \
