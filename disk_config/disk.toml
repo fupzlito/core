@@ -1,9 +1,14 @@
 [[customizations.filesystem]]
+mountpoint = "/boot/efi"
+minsize = "256 MiB"
+filesystem = "vfat"
+
+[[customizations.filesystem]]
 mountpoint = "/boot"
 minsize = "512 MiB"
 filesystem = "ext4"
 
 [[customizations.filesystem]]
 mountpoint = "/"
-minsize = "15 GiB"
+minsize = "10 GiB"
 filesystem = "xfs"
