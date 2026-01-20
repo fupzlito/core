@@ -1,6 +1,6 @@
 export image_name := env("IMAGE_NAME", "core") # output image name, usually same as repo name, change as needed
 export default_tag := env("DEFAULT_TAG", "systemd")
-export bib_image := env("BIB_IMAGE", "quay.io/bootc-devel/fedora-bootc-43-minimal-plus")
+export bib_image := env("BIB_IMAGE", "quay.io/centos-bootc/bootc-image-builder:latest")
 
 alias build-vm := build-qcow2
 alias rebuild-vm := rebuild-qcow2
