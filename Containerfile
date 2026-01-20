@@ -16,7 +16,7 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/09-initramfs.sh
+    /ctx/initramfs.sh
 
 ### LINTING
 ## Verify final image and contents are correct.
