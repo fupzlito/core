@@ -17,7 +17,7 @@ on:
 env:
   IMAGE_DESC: "My Customized bootc Fedora"
   IMAGE_KEYWORDS: "bootc,fedora"
-  IMAGE_LOGO_URL: "https://avatars.githubusercontent.com/u/120078124?s=200&v=4" # Put your own image here for a fancy profile on https://artifacthub.io/!
+  IMAGE_LOGO_URL: "https://avatars.githubusercontent.com/u/120078124?s=200&v=4" # Put your own image here
   IMAGE_NAME: "${{ github.event.repository.name }}" # output image name, usually same as repo name
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}" # do not edit
   DEFAULT_TAG: "systemd"
@@ -55,8 +55,6 @@ jobs:
       - name: Mount BTRFS for podman storage
         id: container-storage-action
         uses: ublue-os/container-storage-action@911baca08baf30c8654933e9e9723cb399892140
-
-        # Fallback to the remove-unwanted-software-action if github doesn't allocate enough space
         # See: https://github.com/ublue-os/container-storage-action/pull/11
         continue-on-error: true
         with:
@@ -66,10 +64,6 @@ jobs:
       - name: Get current date
         id: date
         run: |
-          # This generates a timestamp like what is defined on the ArtifactHub documentation
-          # E.G: 2022-02-08T15:38:15Z'
-          # https://artifacthub.io/docs/topics/repositories/container-images/
-          # https://linux.die.net/man/1/date
           echo "date=$(date -u +%Y\-%m\-%d\T%H\:%M\:%S\Z)" >> $GITHUB_OUTPUT
 
       # Image metadata for https://artifacthub.io/ - This is optional but is highly recommended so we all can get a index of all the custom images
@@ -104,6 +98,14 @@ jobs:
             containers.bootc=1
           sep-tags: " "
           sep-annotations: " "
+
+      # Secure Boot from action secrets $ECUREBOOT_KEY
+      - name: Decode Secure Boot keys
+        run: |
+          echo "$SECUREBOOT_KEY" | base64 --decode > system-files/base/secureboot/MOK.key
+          chmod 600 system-files/base/secureboot/MOK.key
+        env:
+          SECUREBOOT_KEY: ${{ secrets.SECUREBOOT_KEY }}
 
       - name: Build Image
         id: build_image

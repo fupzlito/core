@@ -2,17 +2,17 @@
 set -ouex pipefail
 
 # Install all required packages
-dnf5 install -y cloud-init docker docker-compose qemu-guest-agent tailscale samba nfs-utils curl systemd-boot-unsigned systemd-ukify
+dnf5 install -y cloud-init docker docker-compose qemu-guest-agent tailscale samba nfs-utils curl
 
-
-# Install ctop static binary
+# Install ctop binary
 curl -Lo /usr/local/bin/ctop \
      -L https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64
 chmod +x /usr/local/bin/ctop
 
 # Clean up
+# find /etc/yum.repos.d/ -maxdepth 1 -type f -name '*.repo' ! -name 'fedora.repo' ! -name 'fedora-updates.repo' ! -name 'fedora-updates-testing.repo' -exec rm -f {} +
+rm -rf /tmp/* || true
 dnf5 clean all
-rm -rf /var/cache/dnf
 
 # Systemd services
 systemctl mask systemd-journald-audit.socket
