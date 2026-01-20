@@ -102,7 +102,7 @@ jobs:
       # Secure Boot from action secrets $ECUREBOOT_KEY
       - name: Decode Secure Boot keys
         run: |
-          echo "$SECUREBOOT_KEY" | base64 --decode > system-files/base/secureboot/MOK.key
+          echo "$SECUREBOOT_KEY" | base64 --decode > files/secureboot/MOK.key
           chmod 600 system-files/base/secureboot/MOK.key
         env:
           SECUREBOOT_KEY: ${{ secrets.SECUREBOOT_KEY }}
