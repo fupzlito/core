@@ -42,7 +42,7 @@ find "/lib/modules/$KVER" -type f -name '*.ko.xz' -print0 | while IFS= read -r -
   fi
 done
 
-rm -f "$SIGN_DIR/MOK.key"
+rm -rf "$SIGN_DIR"
 
 echo "Building initramfs for kernel version: $KVER"
 
