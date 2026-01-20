@@ -2,7 +2,8 @@
 set -ouex pipefail
 
 # Install all required packages
-dnf5 install -y cloud-init docker docker-compose qemu-guest-agent tailscale samba nfs-utils curl
+dnf5 install -y cloud-init docker docker-compose qemu-guest-agent tailscale samba nfs-utils curl systemd-boot-unsigned systemd-ukify
+
 
 # Install ctop static binary
 curl -Lo /usr/local/bin/ctop \
