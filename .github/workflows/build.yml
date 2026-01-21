@@ -190,10 +190,16 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Sign container
+      - name: Sign all pushed tags (by digest)
         if: github.event_name != 'pull_request'
         run: |
-          IMAGE="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.img.outputs.digest }}"
-          cosign sign -y --key env://COSIGN_PRIVATE_KEY "$IMAGE"
+          set -euo pipefail
+          for tag in ${{ steps.metadata.outputs.tags }}; do
+            REF="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
+            DIGEST="$(skopeo inspect --format '{{.Digest}}' "docker://$REF")"
+            IMAGE="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@$DIGEST"
+            echo "Signing: $IMAGE (from $REF)"
+            cosign sign -y --key env://COSIGN_PRIVATE_KEY "$IMAGE"
+          done
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
