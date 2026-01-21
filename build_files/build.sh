@@ -10,6 +10,7 @@ packages=(
   samba
   nfs-utils
   curl
+  tree
 )
 
 coprs=(

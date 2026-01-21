@@ -13,15 +13,6 @@ on:
   schedule:
     # Runs once a week: Mondays at 10:05 UTC - only on main
     - cron: "05 10 * * 1"
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - "files/**"
-      - "**/README.md"
-      - ".github/**"
-      - "disk_config/**"
-      - "Justfile"
   workflow_dispatch:
 
 env:
