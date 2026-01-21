@@ -12,7 +12,7 @@ echo "core" > /etc/hostname
 # Create a real /etc/os-release (don’t edit /usr/lib/os-release in-place)
 cat > /etc/os-release <<EOF
 NAME="core"
-ID="core"
+ID="fedora"
 VERSION="${RELEASE}.${DATE}"
 VERSION_ID="${RELEASE}.${DATE}"
 PRETTY_NAME="Core ${RELEASE}.${DATE}"
