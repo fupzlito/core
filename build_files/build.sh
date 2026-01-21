@@ -9,11 +9,6 @@ coprs=(
 
 )
 
-for copr in "${coprs[@]}"; do
-  echo "Enabling copr: $copr"
-  dnf5 -y copr enable "$copr"
-done
-
 packages=(
   kernel-cachyos-lto
   kernel-cachyos-lto-devel-matched
