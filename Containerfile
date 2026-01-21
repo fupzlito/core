@@ -2,7 +2,7 @@ FROM scratch AS ctx
 COPY build_files /
 
 # Base Image
-FROM quay.io/bootc-devel/fedora-bootc-43-minimal-plus
+FROM quay.io/bootc-devel/fedora-bootc-43-minimal
 
 COPY files/ /
 
