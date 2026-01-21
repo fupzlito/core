@@ -2,17 +2,10 @@
 set -ouex pipefail
 
 coprs=(
-  bieszczaders/kernel-cachyos-lto
-  bieszczaders/kernel-cachyos-addons
-
   ublue-os/packages
-
 )
 
 packages=(
-  kernel-cachyos-lto
-  kernel-cachyos-lto-devel-matched
-
   cloud-init
   docker
   docker-compose
