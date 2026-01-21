@@ -1,18 +1,27 @@
 ---
-name: Build container image (rechuncked)
-
+name: Build container image (rechunked)
 on:
- # pull_request:
- #   branches:
- #     - main
- #  schedule:
- #    - cron: "05 10 * * *" # 10:05am UTC everyday
- # push:
- #   branches:
- #     - main
- #   paths-ignore:
- #     - "files/**"
- #     - "**/README.md"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "files/**"
+      - "**/README.md"
+      - ".github/**"
+      - "disk_config/**"
+      - "Justfile"
+  schedule:
+    # Runs once a week: Mondays at 10:05 UTC - only on main
+    - cron: "05 8 * * 1"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "files/**"
+      - "**/README.md"
+      - ".github/**"
+      - "disk_config/**"
+      - "Justfile"
   workflow_dispatch:
 
 env:
@@ -21,7 +30,7 @@ env:
   IMAGE_LOGO_URL: "https://avatars.githubusercontent.com/u/120078124?s=200&v=4" # Put your own image here for a fancy profile on https://artifacthub.io/!
   IMAGE_NAME: "${{ github.event.repository.name }}" # output image name, usually same as repo name
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}" # do not edit
-  DEFAULT_TAG: "rechuncked"
+  DEFAULT_TAG: "rechunked"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.brand_name}}-${{ inputs.stream_name }}
@@ -30,6 +39,7 @@ concurrency:
 jobs:
   build_push:
     name: Build and push image
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
 
     permissions:
@@ -54,12 +64,10 @@ jobs:
           # Lowercase image coords for later steps
           echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> "${GITHUB_ENV}"
           echo "IMAGE_NAME=${IMAGE_NAME,,}" >> "${GITHUB_ENV}"
-
-          # Timestamp output (keep your existing consumer: steps.date.outputs.date)
+          # Timestamp output
           echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "${GITHUB_OUTPUT}"
           echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "${GITHUB_ENV}"
-
-          # Decode Secure Boot key
+          # Inject Secure Boot key
           mkdir -p files/secureboot
           echo "${SECUREBOOT_KEY}" | base64 --decode > files/secureboot/MOK.key
           chmod 600 files/secureboot/MOK.key
@@ -72,13 +80,12 @@ jobs:
         with:
           cosign-release: "v2.6.1"
 
-
       # You only use this action if the container-storage-action proves to be unreliable, you don't need to enable both
       # This is optional, but if you see that your builds are way too big for the runners, you can enable this by uncommenting the following lines:
       # - name: Maximize build space
       #   uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6
 
-      - name: Mount BTRFS for podman storage
+      - name: Expand container storage
         id: container-storage-action
         uses: ublue-os/container-storage-action@911baca08baf30c8654933e9e9723cb399892140
         # See: https://github.com/ublue-os/container-storage-action/pull/11
@@ -87,7 +94,7 @@ jobs:
           target-dir: /var/lib/containers
           mount-opts: compress-force=zstd:2
 
-      - name: Container Image Metadata
+      - name: Set container metadata
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         id: metadata
         with:
@@ -115,7 +122,7 @@ jobs:
           sep-tags: " "
           sep-annotations: " "
 
-      - name: Registry logins
+      - name: Registry login
         if: github.event_name != 'pull_request'
         run: |
 
@@ -125,7 +132,7 @@ jobs:
           # Cosign auth (used for pushing signatures)
           echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Build Image Locally
+      - name: Build image
         run: |
           set -euo pipefail
           sudo -E buildah build \
@@ -143,7 +150,7 @@ jobs:
           version: "${{ env.DEFAULT_TAG }}"
           labels: ${{ steps.metadata.outputs.labels }}
 
-      - name: Tag + push all tags to GHCR
+      - name: Push image
         if: github.event_name != 'pull_request'
         id: push
         run: |
@@ -160,8 +167,7 @@ jobs:
             sudo podman push "$DST"
           done
 
- 
-      - name: Sign ALL pushed tags (resolve tag -> digest)
+      - name: Sign container image
         if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
