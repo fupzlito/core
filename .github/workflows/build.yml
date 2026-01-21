@@ -20,7 +20,7 @@ env:
   IMAGE_LOGO_URL: "https://avatars.githubusercontent.com/u/120078124?s=200&v=4" # Put your own image here for a fancy profile on https://artifacthub.io/!
   IMAGE_NAME: "${{ github.event.repository.name }}" # output image name, usually same as repo name
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}" # do not edit
-  DEFAULT_TAG: "testing"
+  DEFAULT_TAG: "latest"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.brand_name}}-${{ inputs.stream_name }}
@@ -179,6 +179,23 @@ jobs:
       #    username: ${{ env.REGISTRY_USER }}
       #    password: ${{ env.REGISTRY_PASSWORD }}
 
+      - name: Install skopeo
+        if: github.event_name != 'pull_request'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y skopeo
+
+      - name: Get remote digest
+        if: github.event_name != 'pull_request'
+        id: img
+        run: |
+          set -euo pipefail
+          REF="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
+          echo "Resolving digest for: $REF"
+          DIGEST="$(sudo skopeo inspect --format '{{.Digest}}' "docker://$REF")"
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "Digest: $DIGEST"
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
         if: github.event_name != 'pull_request'
@@ -190,16 +207,12 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Sign all pushed tags (by digest)
+      - name: Sign container image (by digest)
         if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
-          for tag in ${{ steps.metadata.outputs.tags }}; do
-            REF="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
-            DIGEST="$(skopeo inspect --format '{{.Digest}}' "docker://$REF")"
-            IMAGE="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@$DIGEST"
-            echo "Signing: $IMAGE (from $REF)"
-            cosign sign -y --key env://COSIGN_PRIVATE_KEY "$IMAGE"
-          done
+          IMAGE="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.img.outputs.digest }}"
+          echo "Signing: $IMAGE"
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY "$IMAGE"
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
