@@ -122,8 +122,8 @@ jobs:
 
       - name: Tag local image as raw-img for rechunk
         run: |
-          sudo podman tag ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} raw-img
-          sudo podman images | head -50
+          podman tag ${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }} raw-img
+          podman images | head -50
 
       # Rechunk is a script that we use on Universal Blue to make sure there isnt a single huge layer when your image gets published.
       # This does not make your image faster to download, just provides better resumability and fixes a few errors.
@@ -144,7 +144,7 @@ jobs:
       - name: Load in podman and tag
         run: |
           IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
-          sudo rm -rf ${{ steps.rechunk.outputs.output }}
+          rm -rf ${{ steps.rechunk.outputs.output }}
           for tag in ${{ steps.metadata.outputs.tags }}; do
             podman tag $IMAGE ${{ env.IMAGE_NAME }}:$tag
           done
