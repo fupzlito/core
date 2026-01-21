@@ -1,8 +1,45 @@
 #!/bin/bash
 set -ouex pipefail
 
-# Install all required packages
-dnf5 install -y cloud-init docker docker-compose qemu-guest-agent tailscale samba nfs-utils curl
+coprs=(
+  bieszczaders/kernel-cachyos-lto
+  bieszczaders/kernel-cachyos-addons
+
+  ublue-os/packages
+
+)
+
+for copr in "${coprs[@]}"; do
+  echo "Enabling copr: $copr"
+  dnf5 -y copr enable "$copr"
+done
+
+packages=(
+
+  dnf5-plugins
+  kernel-cachyos-lto
+  kernel-cachyos-lto-devel-matched
+
+  cloud-init
+  docker
+  docker-compose
+  qemu-guest-agent
+  tailscale
+  samba
+  nfs-utils
+  curl
+)
+
+# Enable COPRs
+for copr in "${coprs[@]}"; do
+  echo "Enabling copr: $copr"
+  dnf5 -y copr enable "$copr"
+done
+
+# Install all packages
+echo -n "max_parallel_downloads=10" >>/etc/dnf/dnf.conf
+dnf5 -y install "${packages[@]}"
+dnf5 -y makecache
 
 # Install ctop binary
 curl -Lo /usr/local/bin/ctop \
@@ -11,8 +48,8 @@ chmod +x /usr/local/bin/ctop
 
 # Clean up
 # find /etc/yum.repos.d/ -maxdepth 1 -type f -name '*.repo' ! -name 'fedora.repo' ! -name 'fedora-updates.repo' ! -name 'fedora-updates-testing.repo' -exec rm -f {} +
-rm -rf /tmp/* || true
-dnf5 clean all
+# rm -rf /tmp/* || true
+# dnf5 clean all
 
 # Systemd services
 systemctl mask systemd-journald-audit.socket
