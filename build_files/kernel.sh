@@ -6,6 +6,16 @@ set -ouex pipefail
 
 shopt -s nullglob
 
+coprs=(
+  bieszczaders/kernel-cachyos-lto
+  bieszczaders/kernel-cachyos-addons
+)
+
+for copr in "${coprs[@]}"; do
+  echo "Enabling copr: $copr"
+  dnf5 -y copr enable "$copr"
+done
+
 pushd /usr/lib/kernel/install.d
 printf '%s\n' '#!/bin/sh' 'exit 0' > 05-rpmostree.install
 printf '%s\n' '#!/bin/sh' 'exit 0' > 50-dracut.install
