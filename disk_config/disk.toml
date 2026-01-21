@@ -5,5 +5,5 @@ filesystem = "ext4"
 
 [[customizations.filesystem]]
 mountpoint = "/"
-minsize = "15 GiB"
+minsize = "10 GiB"
 filesystem = "xfs"
