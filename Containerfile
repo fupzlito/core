@@ -18,12 +18,33 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
+    /ctx/services.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
     /ctx/kernel.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/initramfs.sh
+
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/finalize.sh
+
+
+# Inject kargs
+COPY kargs/console.toml /usr/lib/bootc/kargs.d/console.toml
+
+
+#RUN mkdir -p /usr/lib/bootc/kargs.d
+#RUN cat <<EOF >> /usr/lib/bootc/kargs.d/console.toml
+#kargs = ["quiet loglevel=3 systemd.show_status=false rd.systemd.show_status=false console=tty0 console=ttyS0,115200n8"]
+#match-architectures = ["x86_64"]
+#EOF
 
 ### LINTING
 ## Verify final image and contents are correct.

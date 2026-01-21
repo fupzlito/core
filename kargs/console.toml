@@ -1,0 +1,10 @@
+kargs = [
+  "quiet",
+  "loglevel=3",
+  "systemd.show_status=false",
+  "rd.systemd.show_status=false",
+  "console=tty0",
+  "console=ttyS0,115200n8"
+]
+
+match-architectures = ["x86_64"]
