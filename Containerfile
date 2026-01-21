@@ -2,7 +2,7 @@ FROM scratch AS ctx
 COPY build_files /
 
 # Base Image
-FROM quay.io/bootc-devel/fedora-bootc-43-minimal-plus
+FROM quay.io/bootc-devel/fedora-bootc-43-minimal
 
 COPY files/ /
 
@@ -38,13 +38,6 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 
 # Inject kargs
 COPY kargs/console.toml /usr/lib/bootc/kargs.d/console.toml
-
-
-#RUN mkdir -p /usr/lib/bootc/kargs.d
-#RUN cat <<EOF >> /usr/lib/bootc/kargs.d/console.toml
-#kargs = ["quiet loglevel=3 systemd.show_status=false rd.systemd.show_status=false console=tty0 console=ttyS0,115200n8"]
-#match-architectures = ["x86_64"]
-#EOF
 
 ### LINTING
 ## Verify final image and contents are correct.
