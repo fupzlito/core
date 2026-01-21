@@ -13,8 +13,9 @@ echo "core" > /etc/hostname
 cat > /etc/os-release <<EOF
 NAME="core"
 ID="fedora"
+ID_LIKE="fedora"
 VERSION="${RELEASE}.${DATE}"
-VERSION_ID="${RELEASE}.${DATE}"
+VERSION_ID="${RELEASE}"
 PRETTY_NAME="Core ${RELEASE}.${DATE}"
 LOGO="cachyos"
 HOME_URL="https://github.com/fupzlito/core"
