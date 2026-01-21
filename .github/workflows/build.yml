@@ -185,14 +185,15 @@ jobs:
         with:
           cosign-release: "v2.6.1"
 
-      - name: Sign container image
+      - name: Cosign login to GHCR
         if: github.event_name != 'pull_request'
         run: |
-          IMAGE_FULL="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}"
-          for tag in ${{ steps.metadata.outputs.tags }}; do
-            cosign sign -y --key env://COSIGN_PRIVATE_KEY $IMAGE_FULL:$tag
-          done
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Sign container
+        if: github.event_name != 'pull_request'
+        run: |
+          IMAGE="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.img.outputs.digest }}"
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY "$IMAGE"
         env:
-          TAGS: ${{ steps.push.outputs.digest }}
-          COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
