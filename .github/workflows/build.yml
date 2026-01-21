@@ -134,51 +134,28 @@ jobs:
           version: "${{ env.DEFAULT_TAG }}"
           labels: ${{ steps.metadata.outputs.labels }}
 
-      - name: Install skopeo (for importing rechunk output)
-        if: github.event_name != 'pull_request'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y skopeo
-
-      - name: Import rechunk OCI output into podman storage (creates raw-rechunked:latest)
-        if: github.event_name != 'pull_request'
-        run: |
-          set -euo pipefail
-          OUT="${{ steps.rechunk.outputs.output }}"
-          echo "Rechunk output dir: $OUT"
-          ls -la "$OUT"
-
-          # Copy ALL images/tags from the OCI layout into containers-storage as raw-rechunked
-          sudo skopeo copy --all \
-            "oci:$OUT" \
-            "containers-storage:raw-rechunked"
-
-          # If rechunk produced multiple tags, pick one deterministically (prefer latest if present)
-          sudo podman images | head -50
-
       - name: Podman GHCR login
         if: github.event_name != 'pull_request'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | sudo podman login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Tag and push to GHCR
+      - name: Pull rechunked image and push to GHCR
         if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
-
-          # Pick a source tag from raw-rechunked (prefer :latest, else first tag)
-          SRC="raw-rechunked:latest"
-          if ! sudo podman image exists "$SRC"; then
-            SRC="$(sudo podman images --format '{{.Repository}}:{{.Tag}}' | grep '^raw-rechunked:' | head -n1)"
-          fi
-          echo "Using source image: $SRC"
+          echo "Rechunk ref: ${{ steps.rechunk.outputs.ref }}"
+          IMG="$(sudo podman pull "${{ steps.rechunk.outputs.ref }}")"
+          echo "Pulled: $IMG"
 
           for tag in ${{ steps.metadata.outputs.tags }}; do
-            sudo podman tag "$SRC" "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
+            sudo podman tag "$IMG" "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
             sudo podman push "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
           done
 
-          sudo rm -rf "${{ steps.rechunk.outputs.output }}"
+          # cleanup if action exposes an output dir (optional)
+          if [ -n "${{ steps.rechunk.outputs.output }}" ]; then
+            sudo rm -rf "${{ steps.rechunk.outputs.output }}"
+          fi
 
       #- name: Login to GHCR
       #  uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
