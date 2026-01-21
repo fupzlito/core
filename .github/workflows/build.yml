@@ -179,22 +179,61 @@ jobs:
       #    username: ${{ env.REGISTRY_USER }}
       #    password: ${{ env.REGISTRY_PASSWORD }}
 
-      - name: Install skopeo
+      - name: Dependencies + registry logins
         if: github.event_name != 'pull_request'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y skopeo
-
-      - name: Get remote digest
-        if: github.event_name != 'pull_request'
-        id: img
         run: |
           set -euo pipefail
-          REF="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
-          echo "Resolving digest for: $REF"
-          DIGEST="$(sudo skopeo inspect --format '{{.Digest}}' "docker://$REF")"
-          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-          echo "Digest: $DIGEST"
+          sudo apt-get update
+          sudo apt-get install -y skopeo jq
+
+          # Rootful podman auth (used for pushing)
+          echo "${{ secrets.GITHUB_TOKEN }}" | sudo podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+          # Cosign auth (used for pushing signatures)
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build Image Locally
+        run: |
+          set -euo pipefail
+          sudo -E buildah build \
+            --file Containerfile \
+            --tag raw-img .
+
+      - name: Run ReChunk
+        id: rechunk
+        uses: ublue-os/legacy-rechunk@a925083d9af7cb04b3e2a6e8c01bfa495f38b710 # v1.0.0
+        with:
+          rechunk: "ghcr.io/ublue-os/legacy-rechunk:v1.0.0-x86_64"
+          ref: "raw-img"
+          prev-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}"
+          skip_compression: true
+          version: "${{ env.DEFAULT_TAG }}"
+          labels: ${{ steps.metadata.outputs.labels }}
+
+      - name: Tag + push all tags to GHCR (no extra pulls)
+        if: github.event_name != 'pull_request'
+        id: push
+        run: |
+          set -euo pipefail
+
+          # legacy-rechunk typically leaves a local image tagged raw-rechunked:latest
+          # (this matches what you were doing earlier)
+          SRC="raw-rechunked:latest"
+
+          sudo podman image exists "$SRC"
+          sudo podman images | head -50
+
+          for tag in ${{ steps.metadata.outputs.tags }}; do
+            DST="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
+            echo "Pushing: $DST"
+            sudo podman tag "$SRC" "$DST"
+            sudo podman push "$DST"
+          done
+
+      - name: Cleanup rechunk output
+        if: github.event_name != 'pull_request' && steps.rechunk.outputs.output != ''
+        run: |
+          sudo rm -rf "${{ steps.rechunk.outputs.output }}"
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
@@ -202,17 +241,20 @@ jobs:
         with:
           cosign-release: "v2.6.1"
 
-      - name: Cosign login to GHCR
-        if: github.event_name != 'pull_request'
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login ghcr.io -u "${{ github.actor }}" --password-stdin
-
-      - name: Sign container image (by digest)
+      - name: Sign ALL pushed tags (resolve tag -> digest)
         if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
-          IMAGE="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.img.outputs.digest }}"
-          echo "Signing: $IMAGE"
-          cosign sign -y --key env://COSIGN_PRIVATE_KEY "$IMAGE"
+
+          IMG="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}"
+
+          for tag in ${{ steps.metadata.outputs.tags }}; do
+            REF="$IMG:$tag"
+            echo "Resolving digest for: $REF"
+            DIGEST="$(sudo skopeo inspect --format '{{.Digest}}' "docker://$REF")"
+            FULL="$IMG@$DIGEST"
+            echo "Signing: $FULL"
+            cosign sign -y --key env://COSIGN_PRIVATE_KEY "$FULL"
+          done
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
