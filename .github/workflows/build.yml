@@ -173,7 +173,7 @@ jobs:
           password: ${{ env.REGISTRY_PASSWORD }}
 
       - name: Sign container image
-        if: github.event_name != 'pull_request"
+        if: github.event_name != 'pull_request'
         run: |
           IMAGE_FULL="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}"
           for tag in ${{ steps.metadata.outputs.tags }}; do
