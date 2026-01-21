@@ -15,8 +15,6 @@ for copr in "${coprs[@]}"; do
 done
 
 packages=(
-
-  dnf5-plugins
   kernel-cachyos-lto
   kernel-cachyos-lto-devel-matched
 
@@ -29,6 +27,8 @@ packages=(
   nfs-utils
   curl
 )
+
+dnf5 -y install dnf5-plugins
 
 # Enable COPRs
 for copr in "${coprs[@]}"; do
