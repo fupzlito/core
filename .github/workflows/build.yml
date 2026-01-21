@@ -151,21 +151,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          # legacy-rechunk typically leaves a local image tagged raw-rechunked:latest
-          # (this matches what you were doing earlier)
-          SRC="raw-rechunked:latest"
-
-          sudo podman image exists "$SRC"
-          sudo podman images | head -50
+          echo "Rechunk ref: ${{ steps.rechunk.outputs.ref }}"
+          SRC_IMG="$(sudo podman pull "${{ steps.rechunk.outputs.ref }}")"
+          echo "Pulled rechunked image: $SRC_IMG"
 
           for tag in ${{ steps.metadata.outputs.tags }}; do
             DST="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
             echo "Pushing: $DST"
-            sudo podman tag "$SRC" "$DST"
+            sudo podman tag "$SRC_IMG" "$DST"
             sudo podman push "$DST"
           done
-
-          sudo rm -rf "${{ steps.rechunk.outputs.output }}"
 
       # - name: Cleanup rechunk output
       #   if: github.event_name != 'pull_request' && steps.rechunk.outputs.output != ''
