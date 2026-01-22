@@ -36,6 +36,14 @@ curl -Lo /usr/local/bin/ctop \
 chmod +x /usr/local/bin/ctop
 
 # Create hawser default data dir (hawser install script expects /data/stacks)
-install -d -m 0755 /data
 install -d -m 0755 /data/stacks
+
+cat >/usr/local/bin/systemctl <<'EOF'
+#!/bin/sh
+exit 0
+EOF
+chmod 0755 /usr/local/bin/systemctl
+
 curl -fsSL https://raw.githubusercontent.com/Finsys/hawser/main/scripts/install.sh | bash
+
+rm -f /usr/local/bin/systemctl
