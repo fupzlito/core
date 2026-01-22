@@ -38,12 +38,21 @@ chmod +x /usr/local/bin/ctop
 # Create hawser default data dir (hawser install script expects /data/stacks)
 install -d -m 0755 /data/stacks
 
+# Install hawser
 cat >/usr/local/bin/systemctl <<'EOF'
 #!/bin/sh
 exit 0
 EOF
 chmod 0755 /usr/local/bin/systemctl
-
 curl -fsSL https://raw.githubusercontent.com/Finsys/hawser/main/scripts/install.sh | bash
-
 rm -f /usr/local/bin/systemctl
+# Patch hawser unit to avoid ReadWritePaths including docker.sock (causes NAMESPACE failure)
+for unit in /etc/systemd/system/hawser.service /usr/lib/systemd/system/hawser.service; do
+  if [ -f "$unit" ]; then
+    # remove docker.sock tokens from ReadWritePaths= lines (handles /run or /var/run)
+    sed -i -E 's#[[:space:]]*/(var/)?run/docker\.sock##g' "$unit"
+    # optionally normalize multiple spaces
+    sed -i -E 's#ReadWritePaths= +#ReadWritePaths=#' "$unit"
+    echo "Patched $unit"
+  fi
+done
