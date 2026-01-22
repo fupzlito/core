@@ -34,3 +34,8 @@ dnf5 -y makecache
 curl -Lo /usr/local/bin/ctop \
      -L https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64
 chmod +x /usr/local/bin/ctop
+
+# Create hawser default data dir (hawser install script expects /data/stacks)
+install -d -m 0755 /data
+install -d -m 0755 /data/stacks
+curl -fsSL https://raw.githubusercontent.com/Finsys/hawser/main/scripts/install.sh | bash
