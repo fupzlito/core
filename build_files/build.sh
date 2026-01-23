@@ -7,10 +7,12 @@ packages=(
   docker-compose
   qemu-guest-agent
   tailscale
-  samba
   nfs-utils
+  samba
+  rsync
   curl
   tree
+  ncdu
 )
 
 coprs=(
@@ -36,22 +38,13 @@ curl -Lo /usr/local/bin/ctop \
 chmod +x /usr/local/bin/ctop
 
 # Create hawser default data dir (hawser install script expects /data/stacks)
-install -d -m 0755 /data/stacks
+mkdir /srv
+install -d -m 0755 /var/srv/stacks
 
 # Install hawser
 curl -fsSL https://raw.githubusercontent.com/Finsys/hawser/main/scripts/install.sh \
-| sed -E '/systemctl (daemon-reload|enable|start|restart)/d' \
+| sed -E \
+    -e 's#/data/stacks#/var/srv/stacks#g' \
+    -e 's#ReadWritePaths=/(var/)?run/docker\.sock[[:space:]]+#ReadWritePaths=#' \
+    -e '/systemctl (daemon-reload|enable|start|restart)/d' \
 | bash
-sed -i -E 's#^ReadWritePaths=/(var/)?run/docker\.sock[[:space:]]+#ReadWritePaths=#' /etc/systemd/system/hawser.service
-
-#cat >/usr/local/bin/systemctl <<'EOF'
-#!/bin/sh
-#exit 0
-#EOF
-#chmod 0755 /usr/local/bin/systemctl
-#curl -fsSL https://raw.githubusercontent.com/Finsys/hawser/main/scripts/install.sh | bash
-#rm -f /usr/local/bin/systemctl
-## Patch hawser unit to avoid ReadWritePaths including docker.sock (causes NAMESPACE failure)
-#sed -i -E 's#^ReadWritePaths=/(var/)?run/docker\.sock[[:space:]]+#ReadWritePaths=#' /etc/systemd/system/hawser.service
-#  fi
-#done
