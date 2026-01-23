@@ -37,6 +37,9 @@ curl -Lo /usr/local/bin/ctop \
      -L https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64
 chmod +x /usr/local/bin/ctop
 
+# Install Distrobox
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
+
 # Create hawser stacks dir
 install -d -m 0755 /var/srv/stacks
 
@@ -64,6 +67,7 @@ for u in /etc/systemd/system/hawser.service /usr/lib/systemd/system/hawser.servi
   # Ensure stacks path is /var/srv/stacks (in case upstream changes it later)
   sed -i -E 's#/data/stacks#/var/srv/stacks#g' "$u"
 done
+
 
 cfg=/etc/hawser/config
 install -d -m 0755 /etc/hawser
