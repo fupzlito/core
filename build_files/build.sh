@@ -2,10 +2,11 @@
 set -ouex pipefail
 
 packages=(
-  cloud-init
-  docker
-  docker-compose
   qemu-guest-agent
+  docker-compose
+  docker
+  cloud-init
+  distrobox
   tailscale
   nfs-utils
   samba
@@ -37,8 +38,6 @@ curl -Lo /usr/local/bin/ctop \
      -L https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64
 chmod +x /usr/local/bin/ctop
 
-# Install Distrobox
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
 
 # Create hawser stacks dir
 install -d -m 0755 /var/srv/stacks
