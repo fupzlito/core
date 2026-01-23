@@ -37,8 +37,7 @@ curl -Lo /usr/local/bin/ctop \
      -L https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64
 chmod +x /usr/local/bin/ctop
 
-# Create hawser default data dir (hawser install script expects /data/stacks)
-mkdir /srv
+# Create hawser stacks dir
 install -d -m 0755 /var/srv/stacks
 
 # Install hawser
