@@ -12,9 +12,17 @@ on:
       - "Justfile"
   schedule:
     # Runs once a week: Mondays at 10:05 UTC - only on main
-    - cron: "05 10 * * 1"
+    - cron: "05 8 * * 1"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "files/**"
+      - "**/README.md"
+      - ".github/**"
+      - "disk_config/**"
+      - "Justfile"
   workflow_dispatch:
-
 env:
   IMAGE_DESC: "My bootc coreOS (Fedora 43)"
   IMAGE_KEYWORDS: "bootc,fedora"
