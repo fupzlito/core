@@ -6,6 +6,13 @@ FROM quay.io/bootc-devel/fedora-bootc-43-minimal-plus
 
 COPY files/ /
 
+# Add brew
+COPY --from=ghcr.io/ublue-os/brew:latest /system_files /
+RUN /usr/bin/systemctl preset brew-setup.service && \
+    /usr/bin/systemctl preset brew-update.timer && \
+    /usr/bin/systemctl preset brew-upgrade.timer
+
+
 RUN mkdir -p /usr/lib/bootupd/updates \
     && cp -r /usr/lib/efi/*/*/* /usr/lib/bootupd/updates
 
