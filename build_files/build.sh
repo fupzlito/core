@@ -14,6 +14,9 @@ packages=(
   curl
   tree
   ncdu
+  scp
+  git
+  gh
 )
 
 coprs=(
@@ -39,44 +42,48 @@ curl -Lo /usr/local/bin/ctop \
 chmod +x /usr/local/bin/ctop
 
 
-# Create hawser stacks dir
-install -d -m 0755 /var/srv/stacks
-
 # Install hawser
-#curl -fsSL https://raw.githubusercontent.com/Finsys/hawser/main/scripts/install.sh \
-#| sed -E \
-#    -e 's#/data/stacks#/var/srv/stacks#g' \
-#    -e 's#ReadWritePaths=/(var/)?run/docker\.sock[[:space:]]+#ReadWritePaths=#' \
-#    -e '/systemctl (daemon-reload|enable|start|restart)/d' \
-#| bash
 curl -fsSL https://raw.githubusercontent.com/Finsys/hawser/main/scripts/install.sh -o /tmp/hawser-install.sh
 
-# Make installer use /var/srv/stacks instead of /data/stacks (everywhere)
-sed -i -E 's#/data/stacks#/var/srv/stacks#g' /tmp/hawser-install.sh
+# Make installer use /var/lib/hawser/stacks instead of /data/stacks (everywhere)
+sed -i -E 's#/data/stacks#/var/lib/hawser/stacks#g' /tmp/hawser-install.sh
+
 # Remove systemctl calls (build env has no systemd)
 sed -i -E '/systemctl (daemon-reload|enable|start|restart)/d' /tmp/hawser-install.sh
 
 bash /tmp/hawser-install.sh
 rm -f /tmp/hawser-install.sh
 
+# Make Hawser data dir
+install -d -o root -g root -m 0755 /var/lib/hawser/stacks
+
 for u in /etc/systemd/system/hawser.service /usr/lib/systemd/system/hawser.service; do
   [ -f "$u" ] || continue
+
   # Remove docker.sock from ReadWritePaths (fixes 226/NAMESPACE)
   sed -i -E 's#^ReadWritePaths=/(var/)?run/docker\.sock[[:space:]]+#ReadWritePaths=#' "$u"
-  # Ensure stacks path is /var/srv/stacks (in case upstream changes it later)
-  sed -i -E 's#/data/stacks#/var/srv/stacks#g' "$u"
-done
 
+  # Ensure stacks path is /var/lib/hawser/stacks
+  sed -i -E 's#/data/stacks#/var/lib/hawser/stacks#g' "$u"
+
+  # Ensure ReadWritePaths includes stacks dir (needed with ProtectSystem=strict)
+  if grep -q '^ReadWritePaths=' "$u"; then
+    grep -q '/var/lib/hawser/stacks' "$u" || \
+      sed -i -E 's#^ReadWritePaths=(.*)#ReadWritePaths=\1 /var/lib/hawser/stacks#' "$u"
+  else
+    printf '\nReadWritePaths=/var/lib/hawser/stacks\n' >>"$u"
+  fi
+done
 
 cfg=/etc/hawser/config
 install -d -m 0755 /etc/hawser
 
 if [ -f "$cfg" ]; then
   if grep -q '^STACKS_DIR=' "$cfg"; then
-    sed -i -E 's#^STACKS_DIR=.*#STACKS_DIR=/var/srv/stacks#' "$cfg"
+    sed -i -E 's#^STACKS_DIR=.*#STACKS_DIR=/var/lib/hawser/stacks#' "$cfg"
   else
-    printf '\nSTACKS_DIR=/var/srv/stacks\n' >>"$cfg"
+    printf '\nSTACKS_DIR=/var/lib/hawser/stacks\n' >>"$cfg"
   fi
 else
-  printf 'STACKS_DIR=/var/srv/stacks\n' >"$cfg"
+  printf 'STACKS_DIR=/var/lib/hawser/stacks\n' >"$cfg"
 fi
