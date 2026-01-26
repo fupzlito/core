@@ -40,19 +40,3 @@ dnf5 -y makecache
 curl -Lo /usr/local/bin/ctop \
      -L https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64
 chmod +x /usr/local/bin/ctop
-
-
-# Install hawser
-curl -fsSL https://raw.githubusercontent.com/Finsys/hawser/main/scripts/install.sh -o /tmp/hawser-install.sh
-
-# Remove systemctl calls (build env has no systemd)
-sed -i -E '/systemctl (daemon-reload|enable|start|restart)/d' /tmp/hawser-install.sh
-
-bash /tmp/hawser-install.sh
-rm -f /tmp/hawser-install.sh
-
-# Patch systemd unit: remove docker.sock from ReadWritePaths (fixes 226/NAMESPACE)
-for u in /etc/systemd/system/hawser.service /usr/lib/systemd/system/hawser.service; do
-  [ -f "$u" ] || continue
-  sed -i -E 's#^ReadWritePaths=/var/run/docker\.sock /data/stacks$#ReadWritePaths=/data/stacks#' "$u"
-done
