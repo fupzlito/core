@@ -2,7 +2,21 @@
 set -euo pipefail
 
 # ---- 1) Install Hawser binary ----
-curl -fsSL https://github.com/Finsys/hawser/releases/latest/download/hawser_linux_amd64.tar.gz | tar xz
+OS=linux
+ARCH=amd64
+VER="${HAWSER_VERSION:-latest}"
+
+if [ "$VER" = "latest" ]; then
+  VER="$(curl -fsSL "https://api.github.com/repos/Finsys/hawser/releases/latest" \
+    | sed -nE 's/.*"tag_name":[[:space:]]*"v?([^"]+)".*/\1/p' | head -n1)"
+  [ -n "$VER" ] || { echo "Failed to resolve latest Hawser version"; exit 1; }
+else
+  VER="${VER#v}"
+fi
+
+curl -fsSL "https://github.com/Finsys/hawser/releases/download/v${VER}/hawser_${VER}_${OS}_${ARCH}.tar.gz" \
+  | tar xz
+
 install -m 0755 hawser /usr/local/bin/hawser
 rm -f hawser
 
