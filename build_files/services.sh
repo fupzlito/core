@@ -9,15 +9,16 @@ shopt -s nullglob
 disable_services=(
   podman.socket
   podman-tcp.service
+  systemd-resolved.service
   NetworkManager-wait-online.service
 )
 
 enable_services=(
   bootc-fetch-apply-updates.service
-  systemd-resolved.service
-  qemu-guest-agent
-  tailscaled
-  docker
+  qemu-guest-agent.service
+  avahi-daemon.service
+  tailscaled.service
+  docker.service
 )
  # serial-getty@ttyS0.service
 

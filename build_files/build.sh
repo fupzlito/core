@@ -2,12 +2,17 @@
 set -ouex pipefail
 
 packages=(
+  cloud-utils-growpart
   qemu-guest-agent
   docker-compose
   docker
   cloud-init
   distrobox
   tailscale
+  avahi-tools
+  nss-mdns
+  avahi
+  dbus
   nfs-utils
   samba
   rsync
@@ -23,6 +28,14 @@ coprs=(
   ublue-os/packages
 )
 
+
+# Add tailscale repo
+dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+
+curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
+  -o /etc/yum.repos.d/tailscale.repo
+
+dnf5 update
 dnf5 -y install dnf5-plugins
 
 # Enable all COPRs
