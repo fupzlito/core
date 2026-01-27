@@ -31,7 +31,7 @@ STACKS_DIR=/srv/hawser
 EOF
 
 # ---- 3) Create stacks directory (persistent via /srv -> /var/srv) ----
-install -d -o root -g root -m 0755 /srv/hawser
+install -d -o root -g root -m 0755 /var/srv/hawser
 
 # ---- 4) Install systemd unit (disabled by default) ----
 cat > /etc/systemd/system/hawser.service <<'EOF'
