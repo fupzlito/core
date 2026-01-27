@@ -33,7 +33,6 @@ coprs=(
 curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
   -o /etc/yum.repos.d/tailscale.repo
 
-dnf5 -y update
 dnf5 -y install dnf5-plugins
 
 # Enable all COPRs
