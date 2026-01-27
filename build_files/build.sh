@@ -30,8 +30,6 @@ coprs=(
 
 
 # Add tailscale repo
-dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-
 curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
   -o /etc/yum.repos.d/tailscale.repo
 
