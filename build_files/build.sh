@@ -9,6 +9,8 @@ packages=(
   cloud-init
   distrobox
   tailscale
+  ethtool
+  iputils
   avahi-tools
   nss-mdns
   avahi
