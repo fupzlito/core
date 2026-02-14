@@ -150,7 +150,9 @@ jobs:
       - name: Sign container image
         if: github.event_name != 'pull_request'
         run: |
-          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.push.outputs.registry-digest }}
+          for tag in ${{ steps.metadata.outputs.tags }}; do
+            cosign sign -y --key env://COSIGN_PRIVATE_KEY "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
+          done
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
 
