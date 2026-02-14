@@ -38,15 +38,19 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/services.sh
 
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
-    --mount=type=tmpfs,dst=/var \
-    --mount=type=tmpfs,dst=/tmp \
-    /ctx/kernel.sh
+# 1. Run CachyOS Kernel logic ONLY on arm64
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+    --mount=type=bind,from=ctx,source=/,target=/ctx \
+    /ctx/kernel.sh; \
+    fi
 
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
-    --mount=type=tmpfs,dst=/var \
-    --mount=type=tmpfs,dst=/tmp \
-    /ctx/initramfs.sh
+# 2. Run Initramfs logic (Optional on ARM, Mandatory for arm64 Cachy build)
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+    --mount=type=bind,from=ctx,source=/,target=/ctx \
+    /ctx/initramfs.sh; \
+    else \
+    echo "Using stock Fedora kernel/initramfs for ARM64"; \
+    fi
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
