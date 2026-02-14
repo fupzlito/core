@@ -2,6 +2,7 @@
 set -ouex pipefail
 
 packages=(
+  policycoreutils-python-utils
   cloud-utils-growpart
   qemu-guest-agent
   docker-compose
