@@ -63,4 +63,4 @@ COPY kargs/console.toml /usr/lib/bootc/kargs.d/console.toml
 
 ### LINTING
 ## Verify final image and contents are correct.
-RUN bootc container lint
+RUN if [ "$TARGETARCH" = "amd64" ]; then bootc container lint; else echo "Skipping bootc lint on $TARGETARCH due to QEMU emulation limits"; fi
