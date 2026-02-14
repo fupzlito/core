@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+echo "::group:: ===$(basename "$0")==="
 set -euo pipefail
 
 # ---- 1) Install Hawser binary ----
@@ -15,10 +16,10 @@ else
 fi
 
 curl -fsSL "https://github.com/Finsys/hawser/releases/download/v${VER}/hawser_${VER}_${OS}_${ARCH}.tar.gz" \
-  | tar xz
+  | tar -xz -C /tmp hawser
 
-install -m 0755 hawser /usr/local/bin/hawser
-rm -f hawser
+install -m 0755 /tmp/hawser /usr/local/bin/hawser
+rm -f /tmp/hawser
 
 # ---- 2) Create config directory + config ----
 install -d -m 0755 /etc/hawser
