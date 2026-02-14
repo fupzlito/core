@@ -49,6 +49,12 @@ dnf5 -y install "${packages[@]}"
 dnf5 -y makecache
 
 # Install ctop binary
-curl -Lo /usr/local/bin/ctop \
-     -L https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64
+curl -fsSL -o /usr/local/bin/ctop \
+  "https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${TARGETARCH}"
 chmod +x /usr/local/bin/ctop
+
+# Install my-caddy binary
+CADDY_TAG="latest"
+curl -fsSL -o /usr/bin/caddy \
+  "https://github.com/fupzlito/my-caddy/releases/download/${CADDY_TAG}/caddy-linux-${TARGETARCH}"
+chmod +x /usr/bin/caddy

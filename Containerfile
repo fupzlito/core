@@ -4,6 +4,10 @@ COPY build_files /
 # Base Image
 FROM quay.io/bootc-devel/fedora-bootc-43-minimal-plus
 
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETPLATFORM
+
 COPY files/ /
 
 # Add brew
@@ -20,6 +24,7 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
+    TARGETOS=$TARGETOS TARGETARCH=$TARGETARCH TARGETPLATFORM=$TARGETPLATFORM \
     /ctx/build.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
@@ -27,7 +32,6 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/hawser.sh
-
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
@@ -52,13 +56,6 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
 
 # Inject kargs
 COPY kargs/console.toml /usr/lib/bootc/kargs.d/console.toml
-
-
-#RUN mkdir -p /usr/lib/bootc/kargs.d
-#RUN cat <<EOF >> /usr/lib/bootc/kargs.d/console.toml
-#kargs = ["quiet loglevel=3 systemd.show_status=false rd.systemd.show_status=false console=tty0 console=ttyS0,115200n8"]
-#match-architectures = ["x86_64"]
-#EOF
 
 ### LINTING
 ## Verify final image and contents are correct.
