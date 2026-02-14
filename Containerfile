@@ -39,24 +39,32 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     /ctx/services.sh
 
 # 1. Run CachyOS Kernel logic ONLY on arm64
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-    --mount=type=bind,from=ctx,source=/,target=/ctx \
-    /ctx/kernel.sh; \
-    fi
+# Stage 2a: AMD64 Branch (Installs CachyOS Kernel)
+FROM base-common AS branch-amd64
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/kernel.sh
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/initramfs.sh
 
-# 2. Run Initramfs logic (Optional on ARM, Mandatory for arm64 Cachy build)
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-    --mount=type=bind,from=ctx,source=/,target=/ctx \
-    /ctx/initramfs.sh; \
-    else \
-    echo "Using stock Fedora kernel/initramfs for ARM64"; \
-    fi
+
+# Stage 2b: ARM64 Branch (Does nothing, stays stock)
+FROM base-common AS branch-arm64
+RUN echo "ARM64 detected: Skipping CachyOS kernel/initramfs scripts."
+
+# --- THE MERGE ---
+
+# Stage 3: Final Image (Steps for BOTH AMD and ARM)
+FROM branch-${TARGETARCH} AS final
+
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
     /ctx/finalize.sh
-
 
 # Inject kargs
 COPY kargs/console.toml /usr/lib/bootc/kargs.d/console.toml
