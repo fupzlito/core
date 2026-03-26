@@ -39,14 +39,14 @@ curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
 
 dnf5 -y install dnf5-plugins
 
-# Force add amneziawg
 # Only add amneziawg-tools if we are building for x86_64
-if [ "$TARGETARCH" = "amd64" ]; then
-  echo "Adding amneziawg-tools for x86_64 build..."
-  dnf5 -y copr enable shiifaer/amneziawg fedora-43-x86_64
-  packages+=(amneziawg-tools)
+# Note: Docker uses 'amd64', Copr/Fedora usually expects 'x86_64'
+if [[ "${TARGETARCH}" == "amd64" ]]; then
+    echo "Architecture is x86_64, adding AmneziaWG tools..."
+    dnf5 -y copr enable shiifaer/amneziawg fedora-43-x86_64
+    packages+=(amneziawg-tools)
 else
-  echo "Skipping amneziawg-tools for $TARGETARCH build (No ARM package available)"
+    echo "Architecture is ${TARGETARCH}, skipping AmneziaWG tools (x86_64 only)."
 fi
 
 # Enable all COPRs
