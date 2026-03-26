@@ -11,7 +11,6 @@ packages=(
   distrobox
   tailscale
   wireguard-tools
-  amneziawg-tools
   ethtool
   iputils
   avahi-tools
@@ -41,7 +40,14 @@ curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
 dnf5 -y install dnf5-plugins
 
 # Force add amneziawg
-dnf5 -y copr enable shiifaer/amneziawg fedora-43-x86_64
+# Only add amneziawg-tools if we are building for x86_64
+if [ "$TARGETARCH" = "amd64" ]; then
+  echo "Adding amneziawg-tools for x86_64 build..."
+  dnf5 -y copr enable shiifaer/amneziawg fedora-43-x86_64
+  packages+=(amneziawg-tools)
+else
+  echo "Skipping amneziawg-tools for $TARGETARCH build (No ARM package available)"
+fi
 
 # Enable all COPRs
 for copr in "${coprs[@]}"; do
