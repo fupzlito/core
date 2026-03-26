@@ -42,28 +42,35 @@ KVER="${KFILE#/boot/vmlinuz-}"
 
 
 
-# 1. Install DKMS and Build Tools
-dnf5 install -y dkms kernel-cachyos-lto-devel-matched openssl
+# 1. Install Build Tools and Headers
+dnf5 install -y git make gcc kernel-cachyos-lto-devel-matched openssl
 
-# 2. Download AmneziaWG Source directly (since Copr is down)
+# 2. Clone and Build directly (Fastest way in CI)
 git clone https://github.com/amnezia-vpn/amneziawg-linux-kernel-module.git /tmp/awg
 cd /tmp/awg
 
-# 3. Add to DKMS and Build
-# The 'dkms.conf' is already in the repo
-dkms add .
-dkms build -m amneziawg -v $(cat version) -k "$KVER"
-dkms install -m amneziawg -v $(cat version) -k "$KVER"
+# We need to point 'make' to your specific Cachy kernel headers
+make -C /usr/src/kernels/"$KVER" M=$PWD modules
 
-# 4. Manual Sign (Since we are in a container build)
-MOD=$(find /usr/lib/modules/"$KVER" -name 'amneziawg.ko*')
+# 3. Install the module to the correct directory
+# This creates /usr/lib/modules/$KVER/extra/amneziawg.ko
+mkdir -p /usr/lib/modules/"$KVER"/extra/
+cp amneziawg.ko /usr/lib/modules/"$KVER"/extra/
+
+# 4. Sign the module for Secure Boot
+MOD="/usr/lib/modules/$KVER/extra/amneziawg.ko"
+
+echo "Signing AmneziaWG module for Secure Boot..."
 /usr/src/kernels/"$KVER"/scripts/sign-file sha256 \
-    /ctx/secureboot/MOK.key \
-    /ctx/secureboot/MOK.pem \
+    /secureboot/MOK.key \
+    /secureboot/MOK.pem \
     "$MOD"
 
-# 5. Cleanup build files to keep the image small
-rm -rf /tmp/awg
+# 5. Cleanup
+cd / && rm -rf /tmp/awg
+
+# 6. Final verification
+modinfo "$MOD" | grep -E "signer|crypto"
 
 
 mv "/boot/vmlinuz-${KVER}" "/usr/lib/modules/${KVER}/vmlinuz"
