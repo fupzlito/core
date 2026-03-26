@@ -31,7 +31,6 @@ packages=(
 
 coprs=(
   ublue-os/packages
-  shiifaer/amneziawg
 )
 
 
@@ -40,6 +39,9 @@ curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
   -o /etc/yum.repos.d/tailscale.repo
 
 dnf5 -y install dnf5-plugins
+
+# Force add amneziawg
+dnf5 -y copr enable shiifaer/amneziawg fedora-43-x86_64
 
 # Enable all COPRs
 for copr in "${coprs[@]}"; do
