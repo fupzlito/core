@@ -6,6 +6,7 @@ set -ouex pipefail
 
 shopt -s nullglob
 
+# 1. Enable Cachy Repos
 coprs=(
   bieszczaders/kernel-cachyos-lto
   bieszczaders/kernel-cachyos-addons
@@ -16,67 +17,59 @@ for copr in "${coprs[@]}"; do
   dnf5 -y copr enable "$copr"
 done
 
+# 2. Prevent standard install triggers
 pushd /usr/lib/kernel/install.d
 printf '%s\n' '#!/bin/sh' 'exit 0' > 05-rpmostree.install
 printf '%s\n' '#!/bin/sh' 'exit 0' > 50-dracut.install
-chmod +x  05-rpmostree.install 50-dracut.install
+chmod +x 05-rpmostree.install 50-dracut.install
 popd
 
+# 3. Install Cachy Kernel & Build Tools
 packages=(
   kernel-cachyos-lto
   kernel-cachyos-lto-devel-matched
+  clang llvm lld make git openssl
 )
 
 for pkg in kernel kernel-core kernel-modules kernel-modules-core; do
-  rpm --erase $pkg --nodeps
+  rpm --erase $pkg --nodeps || true
 done
 
 dnf5 -y install "${packages[@]}"
-dnf5 versionlock add "${packages[@]}"
+dnf5 versionlock add kernel-cachyos-lto kernel-cachyos-lto-devel-matched
 
-# Fix for Cachy Kernel not installing properly
-rm -rf "/usr/lib/modules/$(ls /usr/lib/modules | head -n1)"
-
+# 4. Extract Kernel Version
 KFILE=$(ls /boot/vmlinuz-* | head -n1)
 KVER="${KFILE#/boot/vmlinuz-}"
 
-
-
-# 1. Install Clang/LLVM (Matches Cachy Kernel build)
-dnf5 install -y clang llvm lld make git kernel-cachyos-lto-devel-matched openssl
-
-# 2. Clone and enter the actual source directory
+# --- START AMNEZIAWG BUILD BLOCK ---
+# 5. Clone and Build with Clang (Matches Cachy LTO)
 git clone https://github.com/amnezia-vpn/amneziawg-linux-kernel-module.git /tmp/awg
 cd /tmp/awg/src
 
-# 3. Build using Clang and the Kernel's Kbuild system
-# We explicitly tell it to use Clang to match the Cachy build
 make -C /usr/src/kernels/"$KVER" M=$PWD \
     LLVM=1 \
     CC=clang \
     LD=ld.lld \
     modules
 
-# 4. Manual Install
-mkdir -p /usr/lib/modules/"$KVER"/extra/
-cp amneziawg.ko /usr/lib/modules/"$KVER"/extra/
+# 6. Install and Sign the Module
+MOD_DEST="/usr/lib/modules/${KVER}/extra/amneziawg.ko"
+mkdir -p "$(dirname "$MOD_DEST")"
+cp amneziawg.ko "$MOD_DEST"
 
-# 5. Sign the module (Your existing logic)
 /usr/src/kernels/"$KVER"/scripts/sign-file sha256 \
     /secureboot/MOK.key \
     /secureboot/MOK.pem \
-    /usr/lib/modules/"$KVER"/extra/amneziawg.ko
+    "$MOD_DEST"
 
-# Cleanup
+depmod -a "$KVER"
+
+# 7. Cleanup build files
 cd / && rm -rf /tmp/awg
+# --- END AMNEZIAWG BUILD BLOCK ---
 
-# 5. Cleanup
-cd / && rm -rf /tmp/awg
-
-# 6. Final verification
-modinfo "$MOD" | grep -E "signer|crypto"
-
-
+# 8. Finalize Kernel placement (Your specific bootc logic)
 mv "/boot/vmlinuz-${KVER}" "/usr/lib/modules/${KVER}/vmlinuz"
 mv "/boot/System.map-${KVER}" "/usr/lib/modules/${KVER}/System.map"
 mv "/boot/config-${KVER}" "/usr/lib/modules/${KVER}/config"
@@ -84,7 +77,4 @@ mv "/boot/symvers-${KVER}.zst" "/usr/lib/modules/${KVER}/symvers.zst"
 rm -rf /boot/*
 
 dnf5 -y distro-sync
-
-depmod -a "$KVER"
-
 echo "::endgroup::"
