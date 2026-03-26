@@ -1,12 +1,10 @@
 #!/bin/bash
 
 echo "::group:: ===$(basename "$0")==="
-
 set -ouex pipefail
-
 shopt -s nullglob
 
-# CHANGE: Target the directory that actually contains the vmlinuz file
+# MINIMAL CHANGE: Find the KVER that actually has a vmlinuz (the one you just moved)
 KVER=$(basename $(dirname $(ls /usr/lib/modules/*/vmlinuz | head -n1)))
 
 ls "/usr/lib/modules"
@@ -23,11 +21,7 @@ sbsign \
   "$KIMAGE"
 mv "${KIMAGE}.signed" "$KIMAGE"
 
-# CHANGE: Use /usr/lib/modules (standard for bootc/Fedora) to match your kernel.sh paths
-find "/usr/lib/modules/$KVER" -type f -name '*.ko*' -print0 | while IFS= read -r -d '' comp; do
-  # Skip already signed or non-compressed if you just want to target xz
-  [[ "$comp" != *.xz ]] && continue
-
+find "/lib/modules/$KVER" -type f -name '*.ko.xz' -print0 | while IFS= read -r -d '' comp; do
   uncompressed="${comp%.xz}"
 
   if xz -d --keep "$comp"; then
