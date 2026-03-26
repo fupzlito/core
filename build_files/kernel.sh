@@ -40,12 +40,31 @@ rm -rf "/usr/lib/modules/$(ls /usr/lib/modules | head -n1)"
 KFILE=$(ls /boot/vmlinuz-* | head -n1)
 KVER="${KFILE#/boot/vmlinuz-}"
 
-# Add AWG Repo & Build Module
-dnf5 -y copr enable amneziavpn/amneziawg
-dnf5 -y install akmods amneziawg-dkms amneziawg-tools
-akmods --force --kernels "${KVER}"
-# Verify (Will fail the build if compile failed)
-ls /usr/lib/modules/"${KVER}"/extra/amneziawg/amneziawg.ko*
+
+
+# 1. Install DKMS and Build Tools
+dnf5 install -y dkms kernel-cachyos-lto-devel-matched openssl
+
+# 2. Download AmneziaWG Source directly (since Copr is down)
+git clone https://github.com/amnezia-vpn/amneziawg-linux-kernel-module.git /tmp/awg
+cd /tmp/awg
+
+# 3. Add to DKMS and Build
+# The 'dkms.conf' is already in the repo
+dkms add .
+dkms build -m amneziawg -v $(cat version) -k "$KVER"
+dkms install -m amneziawg -v $(cat version) -k "$KVER"
+
+# 4. Manual Sign (Since we are in a container build)
+MOD=$(find /usr/lib/modules/"$KVER" -name 'amneziawg.ko*')
+/usr/src/kernels/"$KVER"/scripts/sign-file sha256 \
+    /ctx/secureboot/MOK.key \
+    /ctx/secureboot/MOK.pem \
+    "$MOD"
+
+# 5. Cleanup build files to keep the image small
+rm -rf /tmp/awg
+
 
 mv "/boot/vmlinuz-${KVER}" "/usr/lib/modules/${KVER}/vmlinuz"
 mv "/boot/System.map-${KVER}" "/usr/lib/modules/${KVER}/System.map"
