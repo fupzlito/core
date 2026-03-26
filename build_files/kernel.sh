@@ -42,29 +42,33 @@ KVER="${KFILE#/boot/vmlinuz-}"
 
 
 
-# 1. Install Build Tools and Headers
-dnf5 install -y git make gcc kernel-cachyos-lto-devel-matched openssl
+# 1. Install Clang/LLVM (Matches Cachy Kernel build)
+dnf5 install -y clang llvm lld make git kernel-cachyos-lto-devel-matched openssl
 
-# 2. Clone and Build directly (Fastest way in CI)
+# 2. Clone and enter the actual source directory
 git clone https://github.com/amnezia-vpn/amneziawg-linux-kernel-module.git /tmp/awg
-cd /tmp/awg
+cd /tmp/awg/src
 
-# We need to point 'make' to your specific Cachy kernel headers
-make -C /usr/src/kernels/"$KVER" M=$PWD modules
+# 3. Build using Clang and the Kernel's Kbuild system
+# We explicitly tell it to use Clang to match the Cachy build
+make -C /usr/src/kernels/"$KVER" M=$PWD \
+    LLVM=1 \
+    CC=clang \
+    LD=ld.lld \
+    modules
 
-# 3. Install the module to the correct directory
-# This creates /usr/lib/modules/$KVER/extra/amneziawg.ko
+# 4. Manual Install
 mkdir -p /usr/lib/modules/"$KVER"/extra/
 cp amneziawg.ko /usr/lib/modules/"$KVER"/extra/
 
-# 4. Sign the module for Secure Boot
-MOD="/usr/lib/modules/$KVER/extra/amneziawg.ko"
-
-echo "Signing AmneziaWG module for Secure Boot..."
+# 5. Sign the module (Your existing logic)
 /usr/src/kernels/"$KVER"/scripts/sign-file sha256 \
     /secureboot/MOK.key \
     /secureboot/MOK.pem \
-    "$MOD"
+    /usr/lib/modules/"$KVER"/extra/amneziawg.ko
+
+# Cleanup
+cd / && rm -rf /tmp/awg
 
 # 5. Cleanup
 cd / && rm -rf /tmp/awg
@@ -80,5 +84,7 @@ mv "/boot/symvers-${KVER}.zst" "/usr/lib/modules/${KVER}/symvers.zst"
 rm -rf /boot/*
 
 dnf5 -y distro-sync
+
+depmod -a "$KVER"
 
 echo "::endgroup::"
