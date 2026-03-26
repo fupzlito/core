@@ -40,6 +40,13 @@ rm -rf "/usr/lib/modules/$(ls /usr/lib/modules | head -n1)"
 KFILE=$(ls /boot/vmlinuz-* | head -n1)
 KVER="${KFILE#/boot/vmlinuz-}"
 
+# Add AWG Repo & Build Module
+dnf5 -y copr enable amneziavpn/amneziawg
+dnf5 -y install akmods amneziawg-dkms amneziawg-tools
+akmods --force --kernels "${KVER}"
+# Verify (Will fail the build if compile failed)
+ls /usr/lib/modules/"${KVER}"/extra/amneziawg/amneziawg.ko*
+
 mv "/boot/vmlinuz-${KVER}" "/usr/lib/modules/${KVER}/vmlinuz"
 mv "/boot/System.map-${KVER}" "/usr/lib/modules/${KVER}/System.map"
 mv "/boot/config-${KVER}" "/usr/lib/modules/${KVER}/config"
