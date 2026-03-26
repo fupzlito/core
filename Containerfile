@@ -20,6 +20,9 @@ RUN /usr/bin/systemctl preset brew-setup.service && \
 RUN mkdir -p /usr/lib/bootupd/updates \
     && cp -r /usr/lib/efi/*/*/* /usr/lib/bootupd/updates
 
+ARG TARGETARCH
+ARG TARGETOS
+
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
