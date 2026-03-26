@@ -31,7 +31,7 @@ packages=(
 
 coprs=(
   ublue-os/packages
-  amneziavpn/amneziawg
+  shiifaer/amneziawg
 )
 
 
