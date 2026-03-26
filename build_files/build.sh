@@ -10,6 +10,8 @@ packages=(
   cloud-init
   distrobox
   tailscale
+  wireguard-tools
+  amneziawg-tools
   ethtool
   iputils
   avahi-tools
@@ -29,6 +31,7 @@ packages=(
 
 coprs=(
   ublue-os/packages
+  amneziavpn/amneziawg
 )
 
 
