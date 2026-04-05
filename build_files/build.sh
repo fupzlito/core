@@ -13,6 +13,7 @@ packages=(
   wireguard-tools
   ethtool
   iputils
+  iptraf-ng
   avahi-tools
   nss-mdns
   avahi
