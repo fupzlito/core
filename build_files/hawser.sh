@@ -5,6 +5,7 @@ set -euo pipefail
 # ---- 1) Install Hawser binary ----
 OS=linux
 ARCH=amd64
+HAWSER_VERSION=v0.2.39
 VER="${HAWSER_VERSION:-latest}"
 
 if [ "$VER" = "latest" ]; then
