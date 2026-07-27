@@ -17,8 +17,13 @@ RUN /usr/bin/systemctl preset brew-setup.service && \
     /usr/bin/systemctl preset brew-upgrade.timer
 
 
-RUN mkdir -p /usr/lib/bootupd/updates \
-    && cp -r /usr/lib/efi/*/*/* /usr/lib/bootupd/updates
+# Guarded copy: only attempt to copy EFI updates if they exist
+RUN mkdir -p /usr/lib/bootupd/updates && \
+    if find /usr/lib/efi -mindepth 3 -maxdepth 3 -type f | read; then \
+      find /usr/lib/efi -mindepth 3 -maxdepth 3 -type f -exec cp -t /usr/lib/bootupd/updates {} +; \
+    else \
+      echo "No EFI updates found, skipping copy"; \
+    fi
 
 ARG TARGETARCH
 ARG TARGETOS
