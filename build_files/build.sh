@@ -21,6 +21,7 @@ packages=(
   nfs-utils
   samba
   rsync
+  unzip
   curl
   tree
   ncdu
