@@ -3,6 +3,7 @@ COPY build_files /
 
 # Base Image
 FROM quay.io/bootc-devel/fedora-bootc-43-minimal-plus
+RUN alternatives --set iptables /usr/sbin/iptables-nft
 
 ARG TARGETOS
 ARG TARGETARCH
