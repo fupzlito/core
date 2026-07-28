@@ -1,37 +1,54 @@
 #!/bin/bash
 set -ouex pipefail
 
-packages=(
+system=(
   policycoreutils-python-utils
   cloud-utils-growpart
   qemu-guest-agent
-  docker-compose
-  docker
   cloud-init
   distrobox
-  tailscale
-  wireguard-tools
-  ethtool
-  iputils
-  iptraf-ng
-  avahi-tools
-  nss-mdns
+  pciutils
+
   avahi
+  avahi-tools
   dbus
+  bind-utils
+  ethtool
+  iptraf-ng
+  iputils
+  lsof
+  nss-mdns
   nfs-utils
-  samba
   rsync
-  unzip
-  curl
-  tree
-  ncdu
+  samba
   scp
+
+  btop
+  curl
   git
   gh
+  jq
+  ncdu
+  tree
+  tar
+  unzip
+  wget
+)
+
+packages=(
+  ctop
+  docker
+  docker-compose
+
+  tailscale
+  wireguard-tools
+  amneziawg-tools
 )
 
 coprs=(
   ublue-os/packages
+  shiifaer/amneziawg
+  fuhrmann/ctop
 )
 
 
@@ -59,13 +76,9 @@ done
 
 # Install all packages
 echo -n "max_parallel_downloads=10" >>/etc/dnf/dnf.conf
+dnf5 -y install "${system[@]}"
 dnf5 -y install "${packages[@]}"
 dnf5 -y makecache
-
-# Install ctop binary
-curl -fsSL -o /usr/local/bin/ctop \
-  "https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-${TARGETARCH}"
-chmod +x /usr/local/bin/ctop
 
 # Install my-caddy binary
 CADDY_TAG="latest"
