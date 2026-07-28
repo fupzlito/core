@@ -47,6 +47,11 @@ packages=(
   amneziawg-tools
 )
 
+drivers=(
+  linux-firmware-intel
+  intel-gpu-tools
+)
+
 coprs=(
   ublue-os/packages
   shiifaer/amneziawg
@@ -72,6 +77,7 @@ echo -n "max_parallel_downloads=10" >>/etc/dnf/dnf.conf
 echo "install_weak_deps=True" >> /etc/dnf/dnf.conf
 dnf5 -y install "${system[@]}"
 dnf5 -y install "${packages[@]}"
+dnf5 -y install "${drivers[@]}"
 dnf5 -y makecache
 
 # Install my-caddy binary
