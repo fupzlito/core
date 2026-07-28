@@ -48,7 +48,7 @@ packages=(
 )
 
 drivers=(
-  linux-firmware-intel
+  intel-gpu-firmware
   intel-gpu-tools
 )
 
