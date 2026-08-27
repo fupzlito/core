@@ -34,41 +34,41 @@ RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
     TARGETOS=$TARGETOS TARGETARCH=$TARGETARCH TARGETPLATFORM=$TARGETPLATFORM \
-    /ctx/build.sh
+    bash /ctx/build.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/hawser.sh
+    bash /ctx/hawser.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/services.sh
+    bash /ctx/services.sh
 
 
 # 1. Run Kernel Script (AMD64 Only)
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    if [ "$TARGETARCH" = "amd64" ]; then /ctx/kernel.sh; else echo "Skipping kernel for $TARGETARCH"; fi
+    if [ "$TARGETARCH" = "amd64" ]; then bash /ctx/kernel.sh; else echo "Skipping kernel for $TARGETARCH"; fi
 
 # 2. Run Initramfs Script (AMD64 Only)
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    if [ "$TARGETARCH" = "amd64" ]; then /ctx/initramfs.sh; else echo "Skipping initramfs for $TARGETARCH"; fi
+    if [ "$TARGETARCH" = "amd64" ]; then bash /ctx/initramfs.sh; else echo "Skipping initramfs for $TARGETARCH"; fi
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/secureboot.sh
+    bash /ctx/secureboot.sh
 
 RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
     --mount=type=tmpfs,dst=/var \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/finalize.sh
+    bash /ctx/finalize.sh
 
 
 # Inject kargs
