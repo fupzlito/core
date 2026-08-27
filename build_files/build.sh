@@ -43,6 +43,7 @@ packages=(
   docker-compose
 
   tailscale
+  wireguard
   wireguard-tools
   amneziawg-tools
 )
