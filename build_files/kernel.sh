@@ -6,6 +6,8 @@ set -ouex pipefail
 
 shopt -s nullglob
 
+SIGN_DIR="/usr/lib/bootc/install/secureboot-keys"
+
 # 1. Enable Cachy Repos
 coprs=(
   bieszczaders/kernel-cachyos-lto
@@ -65,8 +67,8 @@ mkdir -p "$(dirname "$MOD_DEST")"
 cp amneziawg.ko "$MOD_DEST"
 
 /usr/src/kernels/"$KVER"/scripts/sign-file sha256 \
-    /secureboot/MOK.key \
-    /secureboot/MOK.pem \
+    /$SIGN_DIR/MOK.key \
+    /$SIGN_DIR/MOK.pem \
     "$MOD_DEST"
 
 depmod -a "$KVER"
