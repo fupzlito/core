@@ -1,19 +1,16 @@
 #!/bin/bash
-
 echo "::group:: ===$(basename "$0")==="
 set -ouex pipefail
 shopt -s nullglob
 
-# MINIMAL CHANGE: Find the KVER that actually has a vmlinuz (the one you just moved)
 KVER=$(basename $(dirname $(ls /usr/lib/modules/*/vmlinuz | head -n1)))
-
-ls "/usr/lib/modules"
-ls "/usr/lib/modules/$KVER"
 KIMAGE="/usr/lib/modules/$KVER/vmlinuz"
 SIGN_DIR="/secureboot"
 
+# Install signing tools
 dnf5 -y install sbsigntools
 
+# Sign the CachyOS kernel with YOUR MOK so the UEFI trusts it
 sbsign \
   --key "$SIGN_DIR/MOK.key" \
   --cert "$SIGN_DIR/MOK.pem" \
@@ -21,27 +18,7 @@ sbsign \
   "$KIMAGE"
 mv "${KIMAGE}.signed" "$KIMAGE"
 
-find "/lib/modules/$KVER" -type f -name '*.ko.xz' -print0 | while IFS= read -r -d '' comp; do
-  uncompressed="${comp%.xz}"
-
-  if xz -d --keep "$comp"; then
-    echo "Decompressed $comp → $uncompressed"
-  else
-    echo "Warning: failed to decompress $comp, skipping"
-    continue
-  fi
-
-  /usr/src/kernels/"$KVER"/scripts/sign-file \
-    sha512 "$SIGN_DIR/MOK.key" "$SIGN_DIR/MOK.pem" "$uncompressed" || true
-  rm -f "$comp"
-
-  if xz -z "$uncompressed"; then
-    echo "Recompressed and signed $uncompressed - ${uncompressed}.xz"
-  else
-    echo "Warning: failed to recompress $uncompressed"
-  fi
-done
-
+# Security cleanup
 rm -f "$SIGN_DIR/MOK.key"
 
 echo "Building initramfs for kernel version: $KVER"
@@ -51,7 +28,9 @@ if [ ! -d "/usr/lib/modules/$KVER" ]; then
   exit 1
 fi
 
+# Update dependencies (crucial to recognize the new amneziawg.ko)
 depmod -a "$KVER"
+
 export DRACUT_NO_XATTR=1
 export TMPDIR="/tmp"
 /usr/bin/dracut \
@@ -63,5 +42,4 @@ export TMPDIR="/tmp"
   -f "/usr/lib/modules/$KVER/initramfs.img"
 
 chmod 0600 "/usr/lib/modules/$KVER/initramfs.img"
-
 echo "::endgroup::"
