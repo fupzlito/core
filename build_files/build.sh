@@ -5,6 +5,7 @@ system=(
   policycoreutils-python-utils
   cloud-utils-growpart
   qemu-guest-agent
+  systemd-boot
   cloud-init
   distrobox
   pciutils
