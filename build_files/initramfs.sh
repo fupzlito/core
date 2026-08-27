@@ -4,22 +4,6 @@ set -ouex pipefail
 shopt -s nullglob
 
 KVER=$(basename $(dirname $(ls /usr/lib/modules/*/vmlinuz | head -n1)))
-KIMAGE="/usr/lib/modules/$KVER/vmlinuz"
-SIGN_DIR="/secureboot"
-
-# Install signing tools
-dnf5 -y install sbsigntools
-
-# Sign the CachyOS kernel with YOUR MOK so the UEFI trusts it
-sbsign \
-  --key "$SIGN_DIR/MOK.key" \
-  --cert "$SIGN_DIR/MOK.pem" \
-  --output "${KIMAGE}.signed" \
-  "$KIMAGE"
-mv "${KIMAGE}.signed" "$KIMAGE"
-
-# Security cleanup
-rm -f "$SIGN_DIR/MOK.key"
 
 echo "Building initramfs for kernel version: $KVER"
 
