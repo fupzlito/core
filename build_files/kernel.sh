@@ -43,17 +43,23 @@ KFILE=$(ls /boot/vmlinuz-* | head -n1)
 KVER="${KFILE#/boot/vmlinuz-}"
 
 # --- START AMNEZIAWG BUILD BLOCK ---
-# 5. Clone and Build with Clang (Matches Cachy LTO)
+# 5. Clone main repo and fetch PR #194
 git clone https://github.com/amnezia-vpn/amneziawg-linux-kernel-module.git /tmp/awg
-cd /tmp/awg/src
+cd /tmp/awg
 
+# Pull the specific pull request into a new local branch named pr-194
+git fetch origin pull/194/head:pr-194
+git checkout pr-194
+cd src
+
+# Build with Clang
 make -C /usr/src/kernels/"$KVER" M=$PWD \
     LLVM=1 \
     CC=clang \
     LD=ld.lld \
     modules
 
-# 6. Install and Sign the Module
+# 6. Install and Sign the Module with YOUR MOK
 MOD_DEST="/usr/lib/modules/${KVER}/extra/amneziawg.ko"
 mkdir -p "$(dirname "$MOD_DEST")"
 cp amneziawg.ko "$MOD_DEST"
